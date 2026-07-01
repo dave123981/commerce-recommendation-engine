@@ -16,8 +16,6 @@ identical assertions against every version.
 
 ## Results
 
-*(fill in after running `evaluate_model` for each version on the same
-time-based test split — this table is the whole point of the project)*
 
 | Version | Precision@10 | Recall@10 | MAP@10 | NDCG@10 |
 |---|---|---|---|---|
@@ -40,12 +38,12 @@ recsys-project/
 │   ├── v4_matrix_factorization.py
 │   └── v5_neural.py
 ├── tests/
-│   └── test_contract.py           # same test suite, run against every version
+│   └── test_contract.py           
 ├── data/
-│   ├── download_data.py           # Kaggle download helper
-│   └── raw/                       # gitignored
-├── models/                        # saved artifacts, gitignored
-├── notebooks/                     # one Colab notebook per version
+│   ├── download_data.py           
+│   └── raw/                       
+├── models/                        
+├── notebooks/                     
 ├── requirements.txt
 └── README.md
 ```
@@ -74,70 +72,4 @@ loaded = SomeRecommender.load("models/v1.pkl")
 | `quantity` | numeric | optional, defaults to 1 |
 
 Cold start is handled once, in `BaseRecommender`: any `user_id` unseen
-during `fit()` (or a known user with too few candidate recommendations)
-automatically falls back to the popularity ranking, so V5 never crashes
-on a brand-new user.
-
-## Quickstart (local)
-
-```bash
-git clone https://github.com/<you>/recsys-project.git
-cd recsys-project
-pip install -r requirements.txt
-pytest tests/test_contract.py -v
-```
-
-```python
-from src.v1_popularity import PopularityRecommender
-from src.metrics import evaluate_model, time_based_split
-import pandas as pd
-
-interactions = pd.read_csv("data/raw/interactions.csv", parse_dates=["timestamp"])
-train, test = time_based_split(interactions, test_frac=0.2)
-
-model = PopularityRecommender().fit(train)
-print(model.recommend(user_id=train["user_id"].iloc[0], n=10))
-print(evaluate_model(model, test, k=10))
-```
-
-## Running in Google Colab
-
-Each notebook in `notebooks/` starts the same way:
-
-```python
-# 1. Kaggle credentials
-from google.colab import files
-files.upload()  # upload kaggle.json
-!mkdir -p ~/.kaggle && mv kaggle.json ~/.kaggle/ && chmod 600 ~/.kaggle/kaggle.json
-
-# 2. Clone your own repo so the notebook trains against versioned source
-!git clone https://github.com/<you>/recsys-project.git
-%cd recsys-project
-!pip install -r requirements.txt -q
-
-# 3. Download data
-!python data/download_data.py --dataset <kaggle-dataset-slug>
-
-# 4. Train + evaluate (identical evaluate_model call in every notebook)
-from src.v1_popularity import PopularityRecommender
-from src.metrics import evaluate_model, time_based_split
-...
-```
-
-Save trained artifacts to Google Drive (`from google.colab import drive`)
-if they're too large for GitHub; commit only the `results.csv` row each
-notebook appends so the results table above stays reproducible.
-
-## Dataset
-
-Recommended: [Olist Brazilian E-Commerce](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce)
-or [Instacart Market Basket Analysis](https://www.kaggle.com/competitions/instacart-market-basket-analysis)
-— both have basket-level (`order_id`) structure needed for V2, and enough
-volume for V3-V5 to have something to learn from.
-
-## Future work
-
-- Swap V4's `TruncatedSVD` for `implicit.als.AlternatingLeastSquares`
-  (proper implicit-feedback ALS)
-- Two-tower architecture for V5 with side features (category, price)
-- Hybrid model combining V2's association rules with V5's embeddings
+during `fit()`.
