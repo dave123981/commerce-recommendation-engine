@@ -1,0 +1,18 @@
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.pytest_cache/
+
+# raw data is large / licensed by Kaggle -- don't commit it
+data/raw/
+*.csv
+!data/sample_*.csv
+
+# trained artifacts -- use GitHub Releases or Git LFS instead
+models/*.pkl
+models/*.h5
+models/*.keras
+
+# secrets
+kaggle.json
+.env
