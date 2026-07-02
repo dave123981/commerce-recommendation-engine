@@ -7,9 +7,6 @@ Embedding layers for user_id and item_id, concatenated and passed through an
 MLP to predict an implicit-feedback score. Trained with negative sampling
 since we only observe positive (purchased) interactions.
 
-This is the version where the API contract earns its keep the most: from
-the outside, `.recommend()` looks identical to V1's, even though under the
-hood it's now a forward pass through a Keras model.
 """
 
 from __future__ import annotations

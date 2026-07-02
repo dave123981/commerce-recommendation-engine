@@ -3,7 +3,6 @@ test_contract.py
 =================
 The single most important file in this repo. It runs the SAME suite of
 assertions against every version (V1-V5), proving the "same API contract"
-claim in the README rather than just asserting it in prose.
 
 Run with:  pytest tests/test_contract.py -v
 """

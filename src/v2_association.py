@@ -6,11 +6,6 @@ Version 2: "People who bought X also bought Y"
 Uses basket-level (order_id) association rule mining via mlxtend's FP-Growth,
 which scales much better than classic Apriori on real transaction data.
 
-Requires `order_id` in the interactions DataFrame — each order_id groups the
-items purchased together in one basket. If your dataset has no natural
-"order", fall back to (user_id, day) as a pseudo-basket.
-
-pip install mlxtend
 """
 
 from __future__ import annotations

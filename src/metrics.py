@@ -4,8 +4,6 @@ metrics.py
 One evaluation harness, used identically for every version so the
 version-to-version comparison table is actually apples-to-apples.
 
-Use `time_based_split` to build train/test sets — random splits leak future
-purchases into training and will inflate CF/MF/neural scores unfairly.
 """
 
 from __future__ import annotations
@@ -16,9 +14,6 @@ import pandas as pd
 
 def time_based_split(interactions: pd.DataFrame, test_frac: float = 0.2):
     """Hold out each user's most recent interactions as test data.
-
-    This keeps every user present in both train and test (where possible),
-    which is what you want for evaluating personalized recommenders.
     """
     interactions = interactions.sort_values("timestamp")
     train_rows, test_rows = [], []
@@ -75,8 +70,6 @@ def ndcg_at_k(recommended: list, relevant: set, k: int) -> float:
 def evaluate_model(model, test_interactions: pd.DataFrame, k: int = 10) -> dict:
     """Run the four core ranking metrics for a fitted model against test data.
 
-    `model` must already be fitted on the TRAIN split and expose `.recommend()`
-    per the BaseRecommender contract.
     """
     precisions, recalls, maps, ndcgs = [], [], [], []
 

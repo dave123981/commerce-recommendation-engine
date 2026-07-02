@@ -4,9 +4,7 @@ v3_collaborative.py
 Version 3: "Users like you also bought..."
 
 Item-based k-NN collaborative filtering using cosine similarity over a
-sparse user-item matrix. Item-based (not user-based) because it's more
-stable at e-commerce scale — item similarity changes slowly, user
-similarity churns constantly as people buy things.
+sparse user-item matrix.
 """
 
 from __future__ import annotations

@@ -2,8 +2,7 @@
 base.py
 =======
 Defines the single API contract that every recommender version (V1-V5) must
-implement. Nothing outside this file should ever need to know which version
-is running underneath — that's the whole point of the exercise.
+implement. 
 
 Interactions DataFrame contract (input to `fit`):
     user_id     : hashable (int/str)

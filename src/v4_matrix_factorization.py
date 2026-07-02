@@ -3,11 +3,7 @@ v4_matrix_factorization.py
 ============================
 Version 4: Matrix Factorization (latent factors)
 
-Uses scikit-learn's TruncatedSVD on the sparse user-item matrix. This is the
-"pure sklearn" MF option so the project stays consistent with its stated
-stack; swap in `implicit.als.AlternatingLeastSquares` if you want a proper
-implicit-feedback ALS model later (recommended as a stretch goal — mention
-it in the README as future work).
+Uses scikit-learn's TruncatedSVD on the sparse user-item matrix.
 """
 
 from __future__ import annotations

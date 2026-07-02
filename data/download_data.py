@@ -1,22 +1,7 @@
 """
 download_data.py
 =================
-Downloads the raw Instacart Market Basket Analysis data from Kaggle.
-Requires a Kaggle API token at ~/.kaggle/kaggle.json (or KAGGLE_USERNAME /
-KAGGLE_KEY env vars set) -- in Colab, upload kaggle.json and run the setup
-cell shown in the README.
 
-Instacart is a COMPETITION, not a plain dataset, so it uses
-`kaggle competitions download`, and you must first accept the competition
-rules at https://www.kaggle.com/c/instacart-market-basket-analysis/rules
-(one click, no submission required) or the download will 403.
-
-The competition also ships several of its CSVs as nested zips
-(e.g. order_products__prior.csv.zip), so extraction recurses one level.
-
-Usage:
-    python data/download_data.py
-    python data/download_data.py --competition instacart-market-basket-analysis
 """
 
 import argparse

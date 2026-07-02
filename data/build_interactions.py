@@ -1,31 +1,7 @@
 """
 build_interactions.py
 ======================
-Transforms the raw Instacart Market Basket Analysis CSVs into the shared
-`interactions` schema every recommender version expects:
 
-    user_id, item_id, order_id, timestamp, quantity
-
-Instacart-specific quirks handled here:
-
-1. No real calendar timestamps. Instacart only gives `order_dow`,
-   `order_hour_of_day`, and `days_since_prior_order` per order. We
-   reconstruct a *relative* per-user timestamp by cumulatively summing
-   `days_since_prior_order`, anchored to an arbitrary reference date. This
-   preserves each user's true purchase ORDER and SPACING (which is all
-   `time_based_split` needs) even though the absolute dates are synthetic.
-
-2. `eval_set == 'test'` orders have no revealed products (that's the
-   original Kaggle competition's held-out target) -- we drop them, since
-   we're not entering the competition, just reusing its data.
-
-3. `order_products__prior.csv` + `order_products__train.csv` together
-   cover every order that has products attached; we concatenate both.
-
-4. `quantity` doesn't really exist in this dataset (each row is "product X
-   was in this order", not a quantity) -- we default it to 1 per line,
-   which is consistent with the Instacart data being purchase presence,
-   not purchase count.
 
 Usage:
     python data/build_interactions.py

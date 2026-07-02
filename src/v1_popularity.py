@@ -4,10 +4,7 @@ v1_popularity.py
 Version 1: "Most purchased products"
 
 Simplest possible baseline. Every version after this one is judged against
-it — if V3 doesn't beat V1 on the shared metrics, that's a real finding
-worth writing up in the README, not a bug to hide.
-
-Includes a recency-decay option so it's not a completely static baseline.
+it 
 """
 
 from __future__ import annotations
