@@ -17,7 +17,6 @@ models/*.keras
 kaggle.json
 .env
 
-src/v1_popularity.py
 src/v2_association.py
 src/v3_collaborative.py
 src/v4_matrix_factorization.py
