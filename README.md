@@ -42,7 +42,8 @@ recsys-project/
 ├── tests/
 │   └── test_contract.py           # same test suite, run against every version
 ├── data/
-│   ├── download_data.py           # Kaggle download helper
+│   ├── download_data.py           # Kaggle competition download helper
+│   ├── build_interactions.py      # raw Instacart CSVs -> interactions.csv
 │   └── raw/                       # gitignored
 ├── models/                        # saved artifacts, gitignored
 ├── notebooks/                     # one Colab notebook per version
@@ -92,7 +93,7 @@ from src.v1_popularity import PopularityRecommender
 from src.metrics import evaluate_model, time_based_split
 import pandas as pd
 
-interactions = pd.read_csv("data/raw/interactions.csv", parse_dates=["timestamp"])
+interactions = pd.read_csv("data/interactions.csv", parse_dates=["timestamp"])
 train, test = time_based_split(interactions, test_frac=0.2)
 
 model = PopularityRecommender().fit(train)
@@ -115,8 +116,10 @@ files.upload()  # upload kaggle.json
 %cd recsys-project
 !pip install -r requirements.txt -q
 
-# 3. Download data
-!python data/download_data.py --dataset <kaggle-dataset-slug>
+# 3. Download + build the interactions table (accept competition rules on
+#    kaggle.com first, one click, no submission needed)
+!python data/download_data.py
+!python data/build_interactions.py
 
 # 4. Train + evaluate (identical evaluate_model call in every notebook)
 from src.v1_popularity import PopularityRecommender
@@ -128,12 +131,41 @@ Save trained artifacts to Google Drive (`from google.colab import drive`)
 if they're too large for GitHub; commit only the `results.csv` row each
 notebook appends so the results table above stays reproducible.
 
-## Dataset
+## Dataset: Instacart Market Basket Analysis
 
-Recommended: [Olist Brazilian E-Commerce](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce)
-or [Instacart Market Basket Analysis](https://www.kaggle.com/competitions/instacart-market-basket-analysis)
-— both have basket-level (`order_id`) structure needed for V2, and enough
-volume for V3-V5 to have something to learn from.
+Using [Instacart Market Basket Analysis](https://www.kaggle.com/competitions/instacart-market-basket-analysis)
+instead of Olist — Instacart has genuine repeat-purchase behavior (that's
+literally what its `reordered` flag captures), which V3/V4/V5 need in order
+to learn anything beyond "recommend whatever's popular." Olist is mostly
+one-time buyers, which caps collaborative filtering and matrix
+factorization at not-much-better-than-V1.
+
+**It's a competition, not a plain dataset** — accept the rules once at
+https://www.kaggle.com/c/instacart-market-basket-analysis/rules (no
+submission needed), then:
+
+```bash
+python data/download_data.py                    # kaggle competitions download
+python data/build_interactions.py                # raw CSVs -> interactions.csv
+```
+
+`build_interactions.py` handles three Instacart-specific quirks:
+
+1. **No real calendar dates** — only `days_since_prior_order` per user.
+   The script reconstructs a per-user *relative* timestamp by cumulatively
+   summing that field from an arbitrary anchor date. Absolute dates are
+   synthetic, but each user's true purchase order and spacing is preserved,
+   which is all `time_based_split` needs.
+2. **`eval_set == 'test'` orders have no products attached** (that's the
+   original competition's held-out prediction target) — dropped.
+3. **Sparse-user/item filtering** — defaults to users with >=5 orders and
+   items with >=10 total purchases, tunable via `build_interactions()`
+   kwargs. Tighten this if V2/V3 are slow; Instacart has ~200K users and
+   ~50K products at full scale.
+
+Output lands at `data/interactions.csv` in the shared schema every version
+expects. Run `build_interactions.py`'s `add_product_names()` helper if you
+want readable product names for eyeballing V2's association rules.
 
 ## Future work
 
