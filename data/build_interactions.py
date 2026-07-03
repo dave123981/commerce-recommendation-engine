@@ -20,7 +20,7 @@ REFERENCE_DATE = pd.Timestamp("2020-01-01")
 
 def build_interactions(
     min_orders_per_user: int = 5,
-    min_purchases_per_item: int = 10,
+    min_purchases_per_item: int = 100,
 ) -> pd.DataFrame:
     orders = pd.read_csv(
         RAW_DIR / "orders.csv",

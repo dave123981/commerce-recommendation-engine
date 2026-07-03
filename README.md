@@ -9,7 +9,7 @@ identical assertions against every version.
 | Version | Technique | Library |
 |---|---|---|
 | V1 | Popularity — most purchased products | pandas |
-| V2 | Association rules — "people who bought X also bought Y" | mlxtend (FP-Growth) |
+| V2 | Association rules — "people who bought X also bought Y" | scikit-learn / scipy.sparse (item-item co-ocurrence) |
 | V3 | Collaborative filtering — "users like you bought..." | scikit-learn (item-based k-NN) |
 | V4 | Matrix factorization — latent factors | scikit-learn (TruncatedSVD) |
 | V5 | Neural recommendation | TensorFlow / Keras (NCF) |

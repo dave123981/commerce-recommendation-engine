@@ -10,9 +10,9 @@ which scales much better than classic Apriori on real transaction data.
 
 from __future__ import annotations
 
+import numpy as np
 import pandas as pd
-from mlxtend.frequent_patterns import association_rules, fpgrowth
-from mlxtend.preprocessing import TransactionEncoder
+import scipy.sparse as sp
 
 from .base import BaseRecommender
 
@@ -20,11 +20,21 @@ from .base import BaseRecommender
 class AssociationRecommender(BaseRecommender):
     version = "v2_association"
 
-    def __init__(self, min_support: float = 0.01, min_confidence: float = 0.2, **kwargs):
+    def __init__(
+        self,
+        min_support: float = 0.001,
+        min_confidence: float = 0.1,
+        min_lift: float = 1.0,
+        max_items: int | None = None,
+        top_k_rules_per_item: int = 50,
+        **kwargs,
+    ):
         super().__init__(**kwargs)
         self.min_support = min_support
         self.min_confidence = min_confidence
-        self._rules: pd.DataFrame | None = None      # antecedent -> [(item, lift)]
+        self.min_lift = min_lift
+        self.max_items = max_items  # optional safety cap on catalog size
+        self.top_k_rules_per_item = top_k_rules_per_item  # bounds memory of the rules lookup
         self._rules_map: dict = {}
         self._user_items: dict[int, set] = {}
 
@@ -32,33 +42,65 @@ class AssociationRecommender(BaseRecommender):
         if "order_id" not in interactions.columns:
             raise ValueError("V2 requires an 'order_id' column to group baskets.")
 
-        baskets = interactions.groupby("order_id")["item_id"].apply(list).tolist()
+        item_freq_full = interactions["item_id"].value_counts()
 
-        te = TransactionEncoder()
-        te_ary = te.fit(baskets).transform(baskets)
-        basket_df = pd.DataFrame(te_ary, columns=te.columns_)
+        df = interactions
+        if self.max_items:
+            top_items = set(item_freq_full.head(self.max_items).index)
+            df = interactions[interactions["item_id"].isin(top_items)]
 
-        frequent_itemsets = fpgrowth(basket_df, min_support=self.min_support, use_colnames=True)
-        if frequent_itemsets.empty:
+        # dedupe (order_id, item_id): an item shouldn't count twice toward
+        # co-occurrence just because it had a quantity/reorder flag row
+        pairs = df[["order_id", "item_id"]].drop_duplicates()
+
+        orders = pairs["order_id"].unique()
+        items = pairs["item_id"].unique()
+        order_to_idx = {o: i for i, o in enumerate(orders)}
+        item_to_idx = {it: i for i, it in enumerate(items)}
+        idx_to_item = {i: it for it, i in item_to_idx.items()}
+
+        rows = pairs["order_id"].map(order_to_idx).values
+        cols = pairs["item_id"].map(item_to_idx).values
+        data = np.ones(len(pairs), dtype=np.int32)
+        basket_item = sp.csr_matrix((data, (rows, cols)), shape=(len(orders), len(items)))
+
+        n_baskets = basket_item.shape[0]
+        item_basket_counts = np.asarray(basket_item.sum(axis=0)).flatten()  # freq per item
+
+        cooccurrence = (basket_item.T @ basket_item).tocsr()
+        cooccurrence.setdiag(0)
+        cooccurrence.eliminate_zeros()
+
+        coo = cooccurrence.tocoo()
+        support = coo.data / n_baskets
+        antecedent_freq = item_basket_counts[coo.row]
+        consequent_freq = item_basket_counts[coo.col]
+        confidence = coo.data / antecedent_freq
+        lift = (coo.data * n_baskets) / (antecedent_freq * consequent_freq)
+
+        mask = (support >= self.min_support) & (confidence >= self.min_confidence) & (lift >= self.min_lift)
+        if not mask.any():
             raise ValueError(
-                "No frequent itemsets found — lower min_support. "
-                f"Got {len(baskets)} baskets, {len(te.columns_)} unique items."
+                "No rules passed the min_support/min_confidence/min_lift thresholds — "
+                "try lowering min_support (e.g. 0.0005) or min_confidence. "
+                f"Got {n_baskets:,} baskets, {len(items):,} items considered."
             )
 
-        rules = association_rules(frequent_itemsets, metric="confidence", min_threshold=self.min_confidence)
-        rules = rules[rules["antecedents"].apply(len) == 1]  # keep simple X -> Y rules
-        rules["antecedent_item"] = rules["antecedents"].apply(lambda s: next(iter(s)))
-        rules["consequent_item"] = rules["consequents"].apply(lambda s: next(iter(s)))
-        rules = rules.sort_values("lift", ascending=False)
+        rules_map: dict = {}
+        for r, c, lft in zip(coo.row[mask], coo.col[mask], lift[mask]):
+            antecedent_item = idx_to_item[r]
+            consequent_item = idx_to_item[c]
+            rules_map.setdefault(antecedent_item, []).append((consequent_item, float(lft)))
 
-        self._rules_map = {}
-        for _, row in rules.iterrows():
-            self._rules_map.setdefault(row["antecedent_item"], []).append(
-                (row["consequent_item"], float(row["lift"]))
-            )
+        for antecedent in rules_map:
+            rules_map[antecedent] = sorted(
+                rules_map[antecedent], key=lambda x: x[1], reverse=True
+            )[: self.top_k_rules_per_item]
 
-        item_freq = interactions["item_id"].value_counts()
-        self._popularity_fallback = item_freq
+        self._rules_map = rules_map
+        # popularity fallback uses the FULL catalog even if max_items capped mining,
+        # so cold-start users still get sensible recs beyond the mined item set
+        self._popularity_fallback = item_freq_full
         self._user_items = interactions.groupby("user_id")["item_id"].apply(set).to_dict()
         self.is_fitted = True
         return self
