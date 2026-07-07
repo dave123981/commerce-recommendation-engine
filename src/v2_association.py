@@ -6,6 +6,10 @@ Version 2: "People who bought X also bought Y"
 Uses basket-level (order_id) association rule mining via mlxtend's FP-Growth,
 which scales much better than classic Apriori on real transaction data.
 
+Computes pairwise association rules (X -> Y) directly from a sparse
+item-item co-occurrence matrix, using only scipy.sparse (a scikit-learn
+dependency)
+
 """
 
 from __future__ import annotations
@@ -22,17 +26,26 @@ class AssociationRecommender(BaseRecommender):
 
     def __init__(
         self,
-        min_support: float = 0.001,
+        min_support: float = 0.0,
         min_confidence: float = 0.1,
         min_lift: float = 1.0,
+        min_cooccurrence: int = 10,
         max_items: int | None = None,
         top_k_rules_per_item: int = 50,
         **kwargs,
     ):
+
+
+# min_support: fraction-of-all-baskets threshold. 
+# min_cooccurrence: minimum RAW COUNT of baskets containing both items. 
+# min_lift / min_confidence: relevance filters, applied only to pairs that already cleared min_cooccurrence.
+
+
         super().__init__(**kwargs)
         self.min_support = min_support
         self.min_confidence = min_confidence
         self.min_lift = min_lift
+        self.min_cooccurrence = min_cooccurrence
         self.max_items = max_items  # optional safety cap on catalog size
         self.top_k_rules_per_item = top_k_rules_per_item  # bounds memory of the rules lookup
         self._rules_map: dict = {}
@@ -78,11 +91,16 @@ class AssociationRecommender(BaseRecommender):
         confidence = coo.data / antecedent_freq
         lift = (coo.data * n_baskets) / (antecedent_freq * consequent_freq)
 
-        mask = (support >= self.min_support) & (confidence >= self.min_confidence) & (lift >= self.min_lift)
+        mask = (
+            (coo.data >= self.min_cooccurrence)
+            & (support >= self.min_support)
+            & (confidence >= self.min_confidence)
+            & (lift >= self.min_lift)
+        )
         if not mask.any():
             raise ValueError(
-                "No rules passed the min_support/min_confidence/min_lift thresholds — "
-                "try lowering min_support (e.g. 0.0005) or min_confidence. "
+                "No rules passed the min_cooccurrence/min_support/min_confidence/min_lift thresholds — "
+                "try lowering min_cooccurrence or min_confidence. "
                 f"Got {n_baskets:,} baskets, {len(items):,} items considered."
             )
 
@@ -128,4 +146,4 @@ class AssociationRecommender(BaseRecommender):
         bought' lookup for a single product, useful for product-page widgets.
         """
         rules = sorted(self._rules_map.get(item_id, []), key=lambda x: x[1], reverse=True)[:n]
-        return [{"item_id": item, "score": score} for item, score in rules]
+        return [{"item_id": item, "score": score} for item, score in rules]       
