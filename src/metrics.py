@@ -11,6 +11,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
+# Time-based train/spliton dataset
 
 def time_based_split(interactions: pd.DataFrame, test_frac: float = 0.2):
     """Hold out each user's most recent interactions as test data.
@@ -30,6 +31,7 @@ def time_based_split(interactions: pd.DataFrame, test_frac: float = 0.2):
     test = pd.concat(test_rows).reset_index(drop=True) if test_rows else pd.DataFrame(columns=interactions.columns)
     return train, test
 
+# compute Precision for recommendation system
 
 def precision_at_k(recommended: list, relevant: set, k: int) -> float:
     if k == 0:
@@ -38,6 +40,7 @@ def precision_at_k(recommended: list, relevant: set, k: int) -> float:
     hits = sum(1 for item in top_k if item in relevant)
     return hits / k
 
+# Compute Recall for recommendation system
 
 def recall_at_k(recommended: list, relevant: set, k: int) -> float:
     if not relevant:
@@ -46,6 +49,7 @@ def recall_at_k(recommended: list, relevant: set, k: int) -> float:
     hits = sum(1 for item in top_k if item in relevant)
     return hits / len(relevant)
 
+# compute aveage percision@K for recommedation system
 
 def average_precision_at_k(recommended: list, relevant: set, k: int) -> float:
     if not relevant:
@@ -58,6 +62,7 @@ def average_precision_at_k(recommended: list, relevant: set, k: int) -> float:
             score += hits / i
     return score / min(len(relevant), k)
 
+# compute ndcgs (Normalized Discounted Cumulative Gain) for recommendation systems
 
 def ndcg_at_k(recommended: list, relevant: set, k: int) -> float:
     top_k = recommended[:k]
@@ -66,7 +71,7 @@ def ndcg_at_k(recommended: list, relevant: set, k: int) -> float:
     idcg = sum(1.0 / np.log2(i + 1) for i in range(1, ideal_hits + 1))
     return dcg / idcg if idcg > 0 else 0.0
 
-
+# Evaluate the model 
 def evaluate_model(model, test_interactions: pd.DataFrame, k: int = 10) -> dict:
     """Run the four core ranking metrics for a fitted model against test data.
 
