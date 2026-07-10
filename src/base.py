@@ -31,7 +31,7 @@ import pandas as pd
 class BaseRecommender(ABC):
     """Abstract base class all recommender versions inherit from."""
 
-    #: bump this in subclasses if you change a version's internal format
+    #: subclasses if you change a version's internal format
     version: str = "base"
 
     def __init__(self, **kwargs):
@@ -56,7 +56,7 @@ class BaseRecommender(ABC):
         raise NotImplementedError
 
     # ------------------------------------------------------------------ #
-    # Shared logic — do not override in subclasses
+    # Shared logic 
     # ------------------------------------------------------------------ #
     def recommend(self, user_id, n: int = 10, exclude_seen: bool = True) -> list[dict]:
         if not self.is_fitted:
