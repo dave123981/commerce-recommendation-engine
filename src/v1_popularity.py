@@ -29,6 +29,9 @@ class PopularityRecommender(BaseRecommender):
         self._user_items: dict[int, set] = {}
         self._scores: pd.Series | None = None  # item_id -> score, sorted desc
 
+
+    #defining the fit for the model
+
     def fit(self, interactions: pd.DataFrame) -> "PopularityRecommender":
         df = interactions.copy()
 

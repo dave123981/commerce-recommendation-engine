@@ -51,6 +51,8 @@ class AssociationRecommender(BaseRecommender):
         self._rules_map: dict = {}
         self._user_items: dict[int, set] = {}
 
+    #defining the fit for the model
+
     def fit(self, interactions: pd.DataFrame) -> "AssociationRecommender":
         if "order_id" not in interactions.columns:
             raise ValueError("V2 requires an 'order_id' column to group baskets.")

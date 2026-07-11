@@ -30,6 +30,8 @@ class MatrixFactorizationRecommender(BaseRecommender):
         self._item_factors: np.ndarray | None = None
         self._user_items: dict[int, set] = {}
 
+    #defining the fit for the model
+
     def fit(self, interactions: pd.DataFrame) -> "MatrixFactorizationRecommender":
         df = interactions.copy()
         qty = df["quantity"] if "quantity" in df.columns else pd.Series(1, index=df.index)

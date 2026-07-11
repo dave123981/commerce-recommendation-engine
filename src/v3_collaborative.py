@@ -29,6 +29,8 @@ class CollaborativeRecommender(BaseRecommender):
         self._item_neighbors: dict = {}  # item_id -> [(neighbor_item_id, similarity), ...] precomputed
         self._user_items: dict[int, set] = {}
 
+    #defining the fit for the model
+
     def fit(self, interactions: pd.DataFrame) -> "CollaborativeRecommender":
         df = interactions.copy()
         qty = df["quantity"] if "quantity" in df.columns else pd.Series(1, index=df.index)
