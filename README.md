@@ -19,10 +19,10 @@ identical assertions against every version.
 
 | Version | Precision@10 | Recall@10 | MAP@10 | NDCG@10 |
 |---|---|---|---|---|
-| V1 Popularity | | | | |
-| V2 Association | | | | |
-| V3 Collaborative | | | | |
-| V4 Matrix Factorization | | | | |
+| V1 Popularity |0.0428|0.0149|0.0173|0.0470|
+| V2 Association |0.0218|0.0106|0.0069|0.0214|
+| V3 Collaborative |0.0515|0.0190|0.0219|0.0574|
+| V4 Matrix Factorization |0.0427|0.0154|0.0178|0.0477|
 | V5 Neural | | | | |
 
 ## Repo structure
