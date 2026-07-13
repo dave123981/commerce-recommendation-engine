@@ -111,39 +111,39 @@ class NeuralRecommender(BaseRecommender):
         return self._user_items.get(user_id, set())
 
     def _recommend_for_known_user(self, user_ids, n=10):
-    item_idxs = self._all_item_idxs
-    n_items = len(item_idxs)
+        item_idxs = self._all_item_idxs
+        n_items = len(item_idxs)
 
-    # Repeat items for each user
-    user_indices = np.repeat(
+        # Repeat items for each user
+        user_indices = np.repeat(
         [self._user_to_idx[u] for u in user_ids], n_items
-    )
-    item_indices = np.tile(item_idxs, len(user_ids))
+         )
+        item_indices = np.tile(item_idxs, len(user_ids))
 
-    scores = self._model.predict(
-        [user_indices, item_indices],
-        batch_size=65536,
-        verbose=0,
-    ).flatten()
+        scores = self._model.predict(
+          [user_indices, item_indices],
+          batch_size=65536,
+          verbose=0,
+          ).flatten()
 
-    scores = scores.reshape(len(user_ids), n_items)
+        scores = scores.reshape(len(user_ids), n_items)
 
-    results = {}
+        results = {}
 
-    for i, user_id in enumerate(user_ids):
-        ranked = np.argpartition(scores, -n)[-n:]
-        ranked = top[np.argsort(-scores[top])]
-        seen = self._seen_items(user_id)
+        for i, user_id in enumerate(user_ids):
+            ranked = np.argpartition(scores, -n)[-n:]
+            ranked = top[np.argsort(-scores[top])]
+            seen = self._seen_items(user_id)
 
-        recs = []
-        for idx in ranked:
-            item = self._idx_to_item[idx]
-            if item not in seen:
-                recs.append({
-                    "item_id": item,
-                    "score": float(scores[i, idx])
-                })
+            recs = []
+            for idx in ranked:
+                item = self._idx_to_item[idx]
+                if item not in seen:
+                    recs.append({
+                        "item_id": item,
+                        "score": float(scores[i, idx])
+                    })
 
-        results[user_id] = recs[:n]
+            results[user_id] = recs[:n]
 
-    return results
+        return results
