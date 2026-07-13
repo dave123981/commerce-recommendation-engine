@@ -64,17 +64,21 @@ class NeuralRecommender(BaseRecommender):
         return model
 
     def _sample_negatives(self, df: pd.DataFrame, rng: np.random.Generator) -> pd.DataFrame:
-        positive_pairs = set(zip(df["user_idx"], df["item_idx"]))
+    
+        n_items = len(self._item_to_idx)
+        positive_keys = (df["user_idx"].astype(np.int64) * n_items + df["item_idx"].astype(np.int64)).values
+
         n_negatives = len(df) * self.negative_ratio
+        oversample = 2  # generate extra candidates since some will collide with positives
+        candidate_users = rng.integers(0, len(self._user_to_idx), size=n_negatives * oversample)
+        candidate_items = rng.integers(0, len(self._item_to_idx), size=n_negatives * oversample)
+        candidate_keys = candidate_users.astype(np.int64) * n_items + candidate_items.astype(np.int64)
 
-        neg_users = rng.integers(0, len(self._user_to_idx), size=n_negatives * 2)
-        neg_items = rng.integers(0, len(self._item_to_idx), size=n_negatives * 2)
+        is_positive = pd.Series(candidate_keys).isin(positive_keys).values  # vectorized hash lookup
+        valid_users = candidate_users[~is_positive][:n_negatives]
+        valid_items = candidate_items[~is_positive][:n_negatives]
 
-        neg_pairs = [
-            (u, i) for u, i in zip(neg_users, neg_items) if (u, i) not in positive_pairs
-        ][:n_negatives]
-
-        return pd.DataFrame(neg_pairs, columns=["user_idx", "item_idx"])
+        return pd.DataFrame({"user_idx": valid_users, "item_idx": valid_items})
 
     # ------------------------------------------------------------------ #
     def fit(self, interactions: pd.DataFrame) -> "NeuralRecommender":
