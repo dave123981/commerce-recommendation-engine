@@ -121,20 +121,21 @@ class NeuralRecommender(BaseRecommender):
     def _seen_items(self, user_id) -> set:
         return self._user_items.get(user_id, set())
 
-    def _recommend_for_known_user(self, user_id, n: int, exclude_items: set) -> list[dict]:
-        user_idx = self._user_to_idx[user_id]
-        candidate_item_idxs = self._all_item_idxs
-        user_batch = np.full_like(candidate_item_idxs, user_idx)
+def _recommend_for_known_user(self, user_id, n: int, exclude_items: set) -> list[dict]:
+    user_idx = self._user_to_idx[user_id]
+    candidate_item_idxs = self._all_item_idxs
+    user_batch = np.full_like(candidate_item_idxs, user_idx)
+    scores = self._model(
+        [user_batch, candidate_item_idxs], training=False
+    ).numpy().flatten()
 
-        scores = self._model.predict([user_batch, candidate_item_idxs], verbose=0).flatten()
-
-        ranked_positions = np.argsort(-scores)
-        results = []
-        for pos in ranked_positions:
-            item = self._idx_to_item[candidate_item_idxs[pos]]
-            if item in exclude_items:
-                continue
-            results.append({"item_id": item, "score": float(scores[pos])})
-            if len(results) >= n:
-                break
-        return results
+    ranked_positions = np.argsort(-scores)
+    results = []
+    for pos in ranked_positions:
+        item = self._idx_to_item[candidate_item_idxs[pos]]
+        if item in exclude_items:
+            continue
+        results.append({"item_id": item, "score": float(scores[pos])})
+        if len(results) >= n:
+            break
+    return results
