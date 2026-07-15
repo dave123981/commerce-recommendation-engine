@@ -125,8 +125,9 @@ class NeuralRecommender(BaseRecommender):
         user_idx = self._user_to_idx[user_id]
         candidate_item_idxs = self._all_item_idxs
         user_batch = np.full_like(candidate_item_idxs, user_idx)
-
-        scores = self._model.predict([user_batch, candidate_item_idxs], verbose=0).flatten()
+        scores = self._model(
+            [user_batch, candidate_item_idxs], training=False
+        ).numpy().flatten()
 
         ranked_positions = np.argsort(-scores)
         results = []

@@ -23,7 +23,7 @@ identical assertions against every version.
 | V2 Association |0.0218|0.0106|0.0069|0.0214|
 | V3 Collaborative |0.0515|0.0190|0.0219|0.0574|
 | V4 Matrix Factorization |0.0427|0.0154|0.0178|0.0477|
-| V5 Neural | | | | |
+| V5 Neural |0.0508|0.01867|0.0218|0.0573|
 
 ## Repo structure
 
