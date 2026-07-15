@@ -1,8 +1,11 @@
 import pytest
 from src.v1_popularity import PopularityRecommender
 from src.v2_association import AssociationRecommender
+from src.v3_collaborative import CollaborativeRecommender
+from src.v4_matrix_factorization import MatrixFactorizationRecommender
+from src.v5_neural import NeuralRecommender
 
-ALL_VERSIONS = [PopularityRecommender, AssociationRecommender]
+ALL_VERSIONS = [PopularityRecommender, AssociationRecommender, CollaborativeRecommender, MatrixFactorizationRecommender, NeuralRecommender]
 
 @pytest.mark.parametrize("RecClass", ALL_VERSIONS)
 def test_recommend_shape(RecClass, sample_interactions):
