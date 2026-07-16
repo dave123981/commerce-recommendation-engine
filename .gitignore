@@ -16,8 +16,5 @@ models/*.keras
 # secrets
 kaggle.json
 .env
-src/__init__.py
-src/base.py
 
-tests/test_contract.py
 
