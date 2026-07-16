@@ -45,7 +45,7 @@ class NeuralRecommender(BaseRecommender):
         self._model: Model | None = None
         self._user_items: dict[int, set] = {}
 
-    # ------------------------------------------------------------------ #
+    # ------Definfing the model build parameters------ #
     def _build_model(self, n_users: int, n_items: int) -> Model:
         user_input = layers.Input(shape=(1,), name="user")
         item_input = layers.Input(shape=(1,), name="item")
@@ -80,7 +80,7 @@ class NeuralRecommender(BaseRecommender):
 
         return pd.DataFrame({"user_idx": valid_users, "item_idx": valid_items})
 
-    # ------------------------------------------------------------------ #
+    # ---------Fitting the model-------------- #
     def fit(self, interactions: pd.DataFrame) -> "NeuralRecommender":
         tf.random.set_seed(self.random_state)
         rng = np.random.default_rng(self.random_state)
