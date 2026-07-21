@@ -25,6 +25,8 @@ identical assertions against every version.
 | V4 Matrix Factorization |0.0427|0.0154|0.0178|0.0477|
 | V5 Neural |0.0508|0.01867|0.0218|0.0573|
 
+![Output](scripts/Output.png)
+
 ## Repo structure
 
 ```
