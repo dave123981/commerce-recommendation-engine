@@ -90,7 +90,7 @@ All five versions were evaluated on the same held-out test split (each user's mo
 | V4 — Matrix Factorization | 0.0359 | 0.0133 | 0.0139 | 0.0390 |
 | V5 — Neural (NCF) | 0.0500 | 0.0181 | 0.0212 | 0.0560 |
 
-![Version comparison](version_comparison.png)
+![Output](scripts/Output.png)
 
 ### Key findings
 
